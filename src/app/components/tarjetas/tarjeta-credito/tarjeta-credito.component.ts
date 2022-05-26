@@ -14,7 +14,7 @@ export class TarjetaCreditoComponent implements OnInit, OnDestroy {
   form:FormGroup;
   suscription!: Subscription;
   tarjeta!: TarjetaCredito;  
-  idTarjeta = 0;
+  idTarjeta: number | undefined;
 
   constructor(private formBuilder:FormBuilder,
                private tarjetaService:TarjetaService,
@@ -32,14 +32,14 @@ export class TarjetaCreditoComponent implements OnInit, OnDestroy {
     this.suscription = this.tarjetaService.obtenerTarjetas().subscribe(data =>{
       console.log(data);
       this.tarjeta = data;
+      
       this.form.patchValue({
         titular: this.tarjeta.titular,
         numeroTarjeta: this.tarjeta.numeroTarjeta,
         fechaExpiracion: this.tarjeta.fechaExpiracion,
         cvv:this.tarjeta.cvv
-      });
-      //error!!!!!
-      // this.idTarjeta = this.tarjeta.id;
+      });      
+      this.idTarjeta = this.tarjeta.id;
     });
   }
   
@@ -48,9 +48,9 @@ export class TarjetaCreditoComponent implements OnInit, OnDestroy {
   }
 
   guardarTarjeta(): void{
-    if(this.idTarjeta === 0){
+    if(this.idTarjeta == undefined){
       this.agregar();      
-    }else{
+    }else{      
       this.editar();
     }
   }
@@ -71,6 +71,7 @@ export class TarjetaCreditoComponent implements OnInit, OnDestroy {
   }
 
   editar(){
+    
     const tarjeta : TarjetaCredito = {
       id: this.tarjeta.id,
       titular: this.form.get('titular')?.value,
@@ -78,11 +79,12 @@ export class TarjetaCreditoComponent implements OnInit, OnDestroy {
       fechaExpiracion: this.form.get('fechaExpiracion')?.value,
       cvv: this.form.get('cvv')?.value
     };
+    
 
-    this.tarjetaService.actualizarTarjeta(this.idTarjeta, tarjeta).subscribe(data =>{
+    this.tarjetaService.actualizarTarjeta(this.idTarjeta!,tarjeta).subscribe(data =>{
+      this.form.reset(); 
       this.toastr.info('Registro actualizado', 'la tarjeta fue actualizada');
       this.tarjetaService.obtenerTarjeta();
-      this.form.reset();
       this.idTarjeta = 0;
     });
   }
